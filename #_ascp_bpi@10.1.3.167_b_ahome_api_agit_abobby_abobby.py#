@@ -162,9 +162,9 @@ def main():
         print "translate angle -90"
         move_robot(-math.pi/2.0, SPEED, 0)
         time.sleep(2.0)
-        move_robot(0.0, SPEED, SPEED / 4.0)
+        move_robot(0.0, SPEED, SPEED / 3.0)
         time.sleep(2.0)
-        move_robot(0.0, SPEED, -SPEED / 4.0)
+        move_robot(0.0, SPEED, -SPEED / 3.0)
         time.sleep(2.0)
 
 if __name__ == "__main__":
