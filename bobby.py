@@ -2,6 +2,8 @@
 #
 # bobby.py - Bobby the Animated Head
 #
+
+import curses
 import time
 import Adafruit_PCA9685
 import logging
@@ -104,7 +106,7 @@ def move_robot(direction, v_linear, v_angular):
     v2 = v_linear * (COS_WHEEL2 * math.cos(direction) - SIN_WHEEL2 * math.sin(direction)) + v_angular
     v3 = v_linear * (COS_WHEEL3 * math.cos(direction) - SIN_WHEEL3 * math.sin(direction)) + v_angular
 
-    print "v1={0}, v2={1}, v3={2}".format(v1, v2, v3)
+    print "v1={0}, v2={1}, v3={2}\r".format(v1, v2, v3)
     set_motor(MOT_1A, MOT_1B, round(v1))
     set_motor(MOT_2A, MOT_2B, round(v2))
     set_motor(MOT_3A, MOT_3B, round(v3))
@@ -135,7 +137,7 @@ def test_motors():
     ramp_pin(MOT_3B, 4095, 0, 10)
 
 
-SPEED = 2048
+SPEED = 3000
 
 def main():
     global pwm
@@ -143,29 +145,67 @@ def main():
     pwm = Adafruit_PCA9685.PCA9685()
     pwm.set_pwm_freq(60)
 
-    while True:
-        print "rotate {}".format(SPEED)
-        move_robot(0.0, 0, SPEED)
-        time.sleep(2.0)
-        print "rotate {}".format(SPEED)
-        move_robot(0.0, 0, -SPEED)
-        time.sleep(2.0)
-        print "translate angle 0.0"
-        move_robot(0.0, SPEED, 0)
-        time.sleep(2.0)
-        print "translate angle 90"
-        move_robot(math.pi/2.0, SPEED, 0)
-        time.sleep(2.0)
-        print "translate angle 180"
-        move_robot(math.pi, SPEED, 0)
-        time.sleep(2.0)
-        print "translate angle -90"
-        move_robot(-math.pi/2.0, SPEED, 0)
-        time.sleep(2.0)
-        move_robot(0.0, SPEED, SPEED / 4.0)
-        time.sleep(2.0)
-        move_robot(0.0, SPEED, -SPEED / 4.0)
-        time.sleep(2.0)
+    #init the curses screen
+    stdscr = curses.initscr()
+    #use cbreak to not require a return key press
+    curses.cbreak()
+    curses.noecho()
+    stdscr.keypad(1)
+    print "\r\npress q to quit\r"
+    quit=False
+    direction = 0.0
+    v_linear = 0.0
+    v_angular = 0.0
 
+    tilt_neck(TILT_CENTER)
+    # loop
+    while quit != True:
+        c = stdscr.getch()
+        print curses.keyname(c)
+        if curses.keyname(c) == "q":
+            quit = True
+        elif curses.keyname(c) == "a":
+            v_angular = SPEED
+        elif curses.keyname(c) == "s":
+            v_angular = 0
+        elif curses.keyname(c) == "d":
+            v_angular = -SPEED
+        elif curses.keyname(c) == "1":
+            direction = -math.pi * 3.0 / 2.0
+            v_linear = SPEED
+        elif curses.keyname(c) == "2":
+            direction = math.pi
+            v_linear = SPEED
+        elif curses.keyname(c) == "3":
+            direction = math.pi * 3.0 / 2.0
+            v_linear = SPEED
+        elif curses.keyname(c) == "4":
+            direction = math.pi / 2.0
+            v_linear = SPEED
+        elif curses.keyname(c) == "5":
+            direction = 0.0
+            v_linear = 0.0
+        elif curses.keyname(c) == "6":
+            direction = -math.pi / 2.0
+            v_linear = SPEED
+        elif curses.keyname(c) == "7":
+            direction = math.pi / 4.0
+            v_linear = SPEED
+        elif curses.keyname(c) == "8":
+            direction = 0.0
+            v_linear = SPEED
+        elif curses.keyname(c) == "9":
+            direction = -math.pi / 4.0
+            v_linear = SPEED
+
+
+        move_robot(direction, v_linear, v_angular)
+
+    move_robot(0.0, 0, 0)
+    curses.nocbreak()
+    stdscr.keypad(0)
+    curses.echo()
+    curses.endwin()
+       
 if __name__ == "__main__":
     main()
